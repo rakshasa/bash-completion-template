@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -e
+
+SOURCE_DIR="${BASH_SOURCE[0]%/*}"
+TEMPLATE_FILE="${SOURCE_DIR}/template.bash"
+
+IMPORT_FILE="${1:?Missing import file argument.}"
+
+if ! [[ -f "${TEMPLATE_FILE}" ]]; then
+  echo "could not find template file at '${TEMPLATE_FILE}'"
+  exit 1
+fi
+
+TEMPLATE_CONTENT="$(< "${TEMPLATE_FILE}")"
+TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -ne '1,/^# completion function$/p' | sed -e '$d')"
+
+if ! [[ -f "${IMPORT_FILE}" ]]; then
+  echo "could not find source file at '${IMPORT_FILE}'"
+  exit 1
+fi
+
+IMPORT_CONTENT="$(< "${IMPORT_FILE}")"
+IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -ne '/^# completion function$/,$p')"
+
+NAMESPACE="$(echo "${IMPORT_CONTENT}" | sed -nEe 's/^# NAMESPACE=([^ $]*)/\1/p')"
+EXECUTABLE="$(echo "${IMPORT_CONTENT}" | sed -nEe 's/^# EXECUTABLE=([^ $]*)/\1/p')"
+
+if [[ -z "${NAMESPACE}" ]]; then
+  echo "could not find NAMESPACE in source file"
+  exit 1
+fi
+
+if [[ -z "${EXECUTABLE}" ]]; then
+  echo "could not find EXECUTABLE in source file"
+  exit 1
+fi
+
+IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/^# NAMESPACE=${NAMESPACE}\$/# NAMESPACE={{bc_namespace}}/")"
+IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/^# EXECUTABLE=${EXECUTABLE}\$/# EXECUTABLE={{bc_executable}}/")"
+IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/command_current=${EXECUTABLE} /command_current={{bc_executable}} /")"
+IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/_${NAMESPACE}/_{{bc_namespace}}/")"
+IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/_{{bc_namespace}}_${EXECUTABLE}/_{{bc_namespace}}_{{bc_executable}}/")"
+
+echo -e "${TEMPLATE_CONTENT}\n\n${IMPORT_CONTENT}" > "${TEMPLATE_FILE}"
