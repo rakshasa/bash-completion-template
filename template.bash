@@ -47,8 +47,12 @@ _{{bc_namespace}}_{{bc_executable}}() {
     fi
 
     commands=() flags=()
-    declare -A flag_funcs
-    ${completion_func}
+    # declare -A flag_funcs
+    local flag_funcs=()
+
+    if ! ${completion_func}; then
+      return 0
+    fi
 
     if (( ${iword} == ${cword} )); then
       break
@@ -56,10 +60,18 @@ _{{bc_namespace}}_{{bc_executable}}() {
       command_current=${command_current//-/_}_${word}
       command_pos=${iword}
     elif [[ " ${flags[*]} " =~ " ${word} " ]]; then
-      local flag_func=${flag_funcs[${word}]}
+      # local flag_func=${flag_funcs[${word}]}
+      local flag_func
+      local iflag
 
-      if [[ -n "${flag_func}" ]]; then
-        ${flag_func}
+      for (( iflag=0; iflag < ${#flag_funcs[@]}; ++iflag )); do
+        if [[ "${flag_funcs[iflag]}" =~ ^${word}//([^$]*)$ ]]; then
+          flag_func="${BASH_REMATCH[1]}"
+        fi
+      done
+
+      if [[ -n "${flag_func}" ]] && ! ${flag_func}; then
+        return 0
       fi
     else
       return 0
@@ -67,21 +79,28 @@ _{{bc_namespace}}_{{bc_executable}}() {
   done
 
   local compreply=("${flags[*]}" "${commands[*]}")
-
   COMPREPLY=($(compgen -W "${compreply[*]}" -- "${cur}"))
+
   return 0
 }
 
-_{{bc_namespace}}_time() {
+_{{bc_namespace}}_{{bc_executable}}_time() {
   _{{bc_namespace}}_{{bc_executable}} "${@}"
   #time _{{bc_namespace}}_{{bc_executable}} "${@}"
 }
 
-complete -F _{{bc_namespace}}_time do
+complete -F _{{bc_namespace}}_{{bc_executable}}_time do
 
-# argument helper functions
+# helper functions
+#
+# flag_func+=(--arg//_{{bc_namespace}}_{{bc_executable}}_skip)
 
-_{{bc_namespace}}_arg_skip() {
+_{{bc_namespace}}_{{bc_executable}}_default_bashdefault() {
+  COMPREPLY=($(compgen -o default -o bashdefault))
+  return 1
+}
+
+_{{bc_namespace}}_{{bc_executable}}_skip() {
   commands=() flags=()
   iword=$(( ${iword} + 1 ))
 }
