@@ -12,9 +12,8 @@ Getting Started
 ---------------
 
 Copy the `template.bash` file and replace `{{bc_namespace}}` and
-``{{bc_executable}}`. Add your changes above the `# completion
-function` line so as to make importing from and updating the template
-work.
+`{{bc_executable}}`. Add your changes above the `# completion function`
+line so as to make importing from and updating the template work.
 
 ```bash
 /update rtorrent_docker do ~/rtorrent-docker/misc/rtorrent-docker.bash
