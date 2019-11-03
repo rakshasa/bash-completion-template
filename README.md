@@ -5,7 +5,7 @@ Introduction
 ------------
 
 This project provides a template for creating bash completion scripts
-that support nested command namespaces, such as git and docker.
+that support nested command namespaces.
 
 
 Getting Started
