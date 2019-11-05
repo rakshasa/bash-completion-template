@@ -35,22 +35,16 @@ _{{bc_namespace}}_{{bc_executable}}() {
 
   local cur prev words cword
   _get_comp_words_by_ref -n : cur prev words cword
-  local commands flags
+  local commands flags flag_funcs
   local command_current={{bc_executable}} command_pos=0 iword=0 cskip=0
 
   for (( iword=1; iword <= ${cword}; ++iword)); do
     local word=${words[iword]}
     local completion_func=_{{bc_namespace}}__${command_current}
 
-    if ! declare -F "${completion_func}" > /dev/null; then
-      return 0
-    fi
+    commands=() flags=() flag_funcs=()
 
-    commands=() flags=()
-    # declare -A flag_funcs
-    local flag_funcs=()
-
-    if ! ${completion_func}; then
+    if ! declare -F "${completion_func}" > /dev/null || ! ${completion_func}; then
       return 0
     fi
 
@@ -60,7 +54,6 @@ _{{bc_namespace}}_{{bc_executable}}() {
       command_current=${command_current//-/_}_${word}
       command_pos=${iword}
     elif [[ " ${flags[*]} " =~ " ${word} " ]]; then
-      # local flag_func=${flag_funcs[${word}]}
       local flag_func
       local iflag
 
@@ -89,11 +82,11 @@ _{{bc_namespace}}_{{bc_executable}}_time() {
   #time _{{bc_namespace}}_{{bc_executable}} "${@}"
 }
 
-complete -F _{{bc_namespace}}_{{bc_executable}}_time do
+complete -F _{{bc_namespace}}_{{bc_executable}}_time {{bc_executable}}
 
 # helper functions
 #
-# flag_func+=(--arg//_{{bc_namespace}}_{{bc_executable}}_skip)
+# flag_funcs+=(--arg//_{{bc_namespace}}_{{bc_executable}}_skip)
 
 _{{bc_namespace}}_{{bc_executable}}_default_bashdefault() {
   COMPREPLY=($(compgen -o default -o bashdefault))
@@ -103,4 +96,10 @@ _{{bc_namespace}}_{{bc_executable}}_default_bashdefault() {
 _{{bc_namespace}}_{{bc_executable}}_skip() {
   commands=() flags=()
   iword=$(( ${iword} + 1 ))
+}
+
+_{{bc_namespace}}_{{bc_executable}}_nospace() {
+  # compopt is not available in ancient bash versions (OSX)
+  # so only call it if it's available
+  type compopt &>/dev/null && compopt -o nospace
 }

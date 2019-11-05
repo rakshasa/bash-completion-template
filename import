@@ -39,7 +39,9 @@ fi
 IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/^# NAMESPACE=${NAMESPACE}\$/# NAMESPACE={{bc_namespace}}/")"
 IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/^# EXECUTABLE=${EXECUTABLE}\$/# EXECUTABLE={{bc_executable}}/")"
 IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/command_current=${EXECUTABLE} /command_current={{bc_executable}} /")"
+
+IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/_${NAMESPACE}_${EXECUTABLE}_time ${EXECUTABLE}/_{{bc_namespace}}_{{bc_executable}}_time {{bc_executable}}/")"
+IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/_${NAMESPACE}_${EXECUTABLE}/_{{bc_namespace}}_{{bc_executable}}/")"
 IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/_${NAMESPACE}/_{{bc_namespace}}/")"
-IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/_{{bc_namespace}}_${EXECUTABLE}/_{{bc_namespace}}_{{bc_executable}}/")"
 
 echo -e "${TEMPLATE_CONTENT}\n\n${IMPORT_CONTENT}" > "${TEMPLATE_FILE}"
