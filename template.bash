@@ -30,19 +30,19 @@
 # NAMESPACE={{bc_namespace}}
 # EXECUTABLE={{bc_executable}}
 
-_{{bc_namespace}}_{{bc_executable}}() {
+_{{bc_namespace}}_{{bc_command}}() {
   COMPREPLY=()
 
   local cur prev words cword
   _get_comp_words_by_ref -n : cur prev words cword
-  local commands flags flag_funcs
-  local command_current={{bc_executable}} command_pos=0 iword=0 cskip=0
+  local commands flags arg_funcs
+  local command_current={{bc_command}} command_pos=0 iword=0 cskip=0
 
   for (( iword=1; iword <= ${cword}; ++iword)); do
     local word=${words[iword]}
     local completion_func=_{{bc_namespace}}__${command_current}
 
-    commands=() flags=() flag_funcs=()
+    commands=() flags=() arg_funcs=()
 
     if ! declare -F "${completion_func}" > /dev/null || ! ${completion_func}; then
       return 0
@@ -53,20 +53,20 @@ _{{bc_namespace}}_{{bc_executable}}() {
     elif [[ " ${commands[*]} " =~ " ${word} " ]]; then
       command_current=${command_current//-/_}_${word}
       command_pos=${iword}
-    elif [[ " ${flags[*]} " =~ " ${word} " ]]; then
-      local flag_func
-      local iflag
+    elif ! [[ " ${flags[*]} " =~ " ${word} " ]]; then
+      return 0
+    fi
 
-      for (( iflag=0; iflag < ${#flag_funcs[@]}; ++iflag )); do
-        if [[ "${flag_funcs[iflag]}" =~ ^${word}//([^$]*)$ ]]; then
-          flag_func="${BASH_REMATCH[1]}"
-        fi
-      done
+    local arg_func
+    local iarg
 
-      if [[ -n "${flag_func}" ]] && ! ${flag_func}; then
-        return 0
+    for (( iarg=0; iarg < ${#arg_funcs[@]}; ++iarg )); do
+      if [[ "${arg_funcs[iarg]}" =~ ^${word}//([^$]*)$ ]]; then
+        arg_func="${BASH_REMATCH[1]}"
       fi
-    else
+    done
+
+    if [[ -n "${arg_func}" ]] && ! ${arg_func}; then
       return 0
     fi
   done
@@ -77,28 +77,28 @@ _{{bc_namespace}}_{{bc_executable}}() {
   return 0
 }
 
-_{{bc_namespace}}_{{bc_executable}}_time() {
-  _{{bc_namespace}}_{{bc_executable}} "${@}"
-  #time _{{bc_namespace}}_{{bc_executable}} "${@}"
+_{{bc_namespace}}_{{bc_command}}_time() {
+  _{{bc_namespace}}_{{bc_command}} "${@}"
+  #time _{{bc_namespace}}_{{bc_command}} "${@}"
 }
 
-complete -F _{{bc_namespace}}_{{bc_executable}}_time {{bc_executable}}
+complete -F _{{bc_namespace}}_{{bc_command}}_time {{bc_executable}}
 
 # helper functions
 #
-# flag_funcs+=(--arg//_{{bc_namespace}}_{{bc_executable}}_skip)
+# arg_funcs+=(--arg//_{{bc_namespace}}_{{bc_command}}_skip)
 
-_{{bc_namespace}}_{{bc_executable}}_default_bashdefault() {
+_{{bc_namespace}}_{{bc_command}}_default_bashdefault() {
   COMPREPLY=($(compgen -o default -o bashdefault))
   return 1
 }
 
-_{{bc_namespace}}_{{bc_executable}}_skip() {
+_{{bc_namespace}}_{{bc_command}}_skip() {
   commands=() flags=()
   iword=$(( ${iword} + 1 ))
 }
 
-_{{bc_namespace}}_{{bc_executable}}_nospace() {
+_{{bc_namespace}}_{{bc_command}}_nospace() {
   # compopt is not available in ancient bash versions (OSX)
   # so only call it if it's available
   type compopt &>/dev/null && compopt -o nospace

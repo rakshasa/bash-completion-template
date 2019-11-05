@@ -9,6 +9,8 @@ NAMESPACE="${1:?Missing namespace argument.}"
 EXECUTABLE="${2:?Missing executable argument.}"
 TARGET_FILE="${3:?Missing target file argument.}"
 
+COMMAND="${EXECUTABLE//-/_}"
+
 if ! [[ -f "${TEMPLATE_FILE}" ]]; then
   echo "could not find template file at '${TEMPLATE_FILE}'"
   exit 1
@@ -27,8 +29,10 @@ TARGET_CONTENT="$(echo "${TARGET_CONTENT}" | sed -ne '1,/^# completion function$
 
 TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/^# NAMESPACE={{bc_namespace}}\$/# NAMESPACE=${NAMESPACE}/")"
 TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/^# EXECUTABLE={{bc_executable}}\$/# EXECUTABLE=${EXECUTABLE}/")"
-TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/command_current={{bc_executable}} /command_current=${EXECUTABLE} /")"
+TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/command_current={{bc_command}} /command_current=${COMMAND} /")"
+
+TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/_{{bc_namespace}}_{{bc_command}}_time {{bc_executable}}/_${NAMESPACE}_${COMMAND}_time ${EXECUTABLE}/")"
+TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/_{{bc_namespace}}_{{bc_command}}/_${NAMESPACE}_${COMMAND}/")"
 TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/_{{bc_namespace}}_/_${NAMESPACE}_/")"
-TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/_${NAMESPACE}_{{bc_executable}}/_${NAMESPACE}_${EXECUTABLE}/")"
 
 echo -e "${TARGET_CONTENT}\n\n${TEMPLATE_CONTENT}" > "${TARGET_FILE}"
