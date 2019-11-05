@@ -17,7 +17,7 @@ line so that the scripts for importing from and updating the template
 works.
 
 ```bash
-./update rtorrent_docker do ~/rtorrent-docker/misc/rtorrent-docker.bash
+./update rtorrent_docker rt-do ~/rtorrent-docker/misc/rtorrent-docker.bash
 ```
 
 Update your file with the latest changes to `template.bash`.
