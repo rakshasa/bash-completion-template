@@ -51,7 +51,7 @@ _{{bc_namespace}}_{{bc_command}}() {
     if (( ${iword} == ${cword} )); then
       break
     elif [[ " ${commands[*]} " =~ " ${word} " ]]; then
-      command_current=${command_current//-/_}_${word}
+      command_current=${command_current}_${word//-/_}
       command_pos=${iword}
     elif ! [[ " ${flags[*]} " =~ " ${word} " ]]; then
       return 0
