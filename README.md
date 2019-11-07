@@ -18,7 +18,7 @@ works correctly.
 
 ```bash
 touch ~/rtorrent-docker/misc/rtorrent-docker.bash
-/update rtorrent_docker do "rt-do rt-do.exe" ~/rtorrent-docker/misc/rtorrent-docker.bash 
+/update rtorrent_docker rt_do "rt-do rt-do.exe" ~/rtorrent-docker/misc/rtorrent-docker.bash 
 ```
 
 Update your file with the latest changes to `template.bash`.
