@@ -6,10 +6,14 @@ SOURCE_DIR="${BASH_SOURCE[0]%/*}"
 TEMPLATE_FILE="${SOURCE_DIR}/template.bash"
 
 NAMESPACE="${1:?Missing namespace argument.}"
-EXECUTABLE="${2:?Missing executable argument.}"
-TARGET_FILE="${3:?Missing target file argument.}"
+COMMAND="${2:?Missing command argument.}"
+EXECUTABLE="${3:?Missing executable argument.}"
+TARGET_FILE="${4:?Missing target file argument.}"
 
-COMMAND="${EXECUTABLE//-/_}"
+if [[ "${COMMAND}" =~ - ]]; then
+  echo "command argument contains '-'"
+  exit 1
+fi
 
 if ! [[ -f "${TEMPLATE_FILE}" ]]; then
   echo "could not find template file at '${TEMPLATE_FILE}'"
@@ -28,7 +32,9 @@ TARGET_CONTENT="$(< "${TARGET_FILE}")"
 TARGET_CONTENT="$(echo "${TARGET_CONTENT}" | sed -ne '1,/^# completion function$/p' | sed -e '$d')"
 
 TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/^# NAMESPACE={{bc_namespace}}\$/# NAMESPACE=${NAMESPACE}/")"
-TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/^# EXECUTABLE={{bc_executable}}\$/# EXECUTABLE=${EXECUTABLE}/")"
+TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/^# COMMAND={{bc_command}}\$/# COMMAND=${COMMAND}/")"
+TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/^# EXECUTABLE=\"{{bc_executable}}\"\$/# EXECUTABLE=\"${EXECUTABLE}\"/")"
+
 TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/command_current={{bc_command}} /command_current=${COMMAND} /")"
 
 TEMPLATE_CONTENT="$(echo "${TEMPLATE_CONTENT}" | sed -e "s/_{{bc_namespace}}_{{bc_command}}_time {{bc_executable}}/_${NAMESPACE}_${COMMAND}_time ${EXECUTABLE}/")"

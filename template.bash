@@ -1,13 +1,17 @@
 # bash completion for {{bc_namespace}}
+#
+# {{bc_namespace}} # all bash functions are prepended with "_{{bc_namespace}}_"
+# {{bc_command}} # the bash-friendly name appended to the namespace
+# {{bc_executable}} # the filename of the executable binary(s)
 
-# _{{bc_namespace}}__{{bc_executable}}_build_all() {
+# _{{bc_namespace}}__{{bc_command}}_build_all() {
 #   # by not checking for '-*' one does not need to type '-' to
 #   # complete these flags
 #   flags=(--build-arg --no-cache --help)
-#   flag_funcs[--build-arg]=_{{bc_namespace}}__{{bc_executable}}_arg_skip
+#   flag_funcs[--build-arg]=_{{bc_namespace}}__{{bc_command}}_arg_skip
 # }
 
-# _{{bc_namespace}}__{{bc_executable}}_build() {
+# _{{bc_namespace}}__{{bc_command}}_build() {
 #   if [[ "${word}" == -* ]]; then
 #     flags=(--help)
 #   else
@@ -15,7 +19,7 @@
 #   fi
 # }
 
-# _{{bc_namespace}}__{{bc_executable}}() {
+# _{{bc_namespace}}__{{bc_command}}() {
 #   if [[ "${word}" == -* ]]; then
 #     flags=(--help)
 #   else
@@ -28,7 +32,8 @@
 # https://github.com/rakshasa/bash-completion-template
 #
 # NAMESPACE={{bc_namespace}}
-# EXECUTABLE={{bc_executable}}
+# COMMAND={{bc_command}}
+# EXECUTABLE="{{bc_executable}}"
 
 _{{bc_namespace}}_{{bc_command}}() {
   COMPREPLY=()
@@ -62,6 +67,8 @@ _{{bc_namespace}}_{{bc_command}}() {
 
     for (( iarg=0; iarg < ${#arg_funcs[@]}; ++iarg )); do
       if [[ "${arg_funcs[iarg]}" =~ ^${word}//([^$]*)$ ]]; then
+        arg_func="_{{bc_namespace}}_${BASH_REMATCH[1]}"
+      elif [[ "${arg_funcs[iarg]}" =~ ^${word}/([^$]*)$ ]]; then
         arg_func="${BASH_REMATCH[1]}"
       fi
     done
@@ -86,19 +93,20 @@ complete -F _{{bc_namespace}}_{{bc_command}}_time {{bc_executable}}
 
 # helper functions
 #
-# arg_funcs+=(--arg//_{{bc_namespace}}_{{bc_command}}_skip)
+# arg_funcs+=(--arg//skip)
+# arg_funcs+=(--arg/_{{bc_namespace}}_skip)
 
-_{{bc_namespace}}_{{bc_command}}_default_bashdefault() {
+_{{bc_namespace}}_default_bashdefault() {
   COMPREPLY=($(compgen -o default -o bashdefault))
   return 1
 }
 
-_{{bc_namespace}}_{{bc_command}}_skip() {
+_{{bc_namespace}}_skip() {
   commands=() flags=()
   iword=$(( ${iword} + 1 ))
 }
 
-_{{bc_namespace}}_{{bc_command}}_nospace() {
+_{{bc_namespace}}_nospace() {
   # compopt is not available in ancient bash versions (OSX)
   # so only call it if it's available
   type compopt &>/dev/null && compopt -o nospace

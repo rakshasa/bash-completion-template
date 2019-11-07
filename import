@@ -23,22 +23,29 @@ fi
 IMPORT_CONTENT="$(< "${IMPORT_FILE}")"
 IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -ne '/^# completion function$/,$p')"
 
-NAMESPACE="$(echo "${IMPORT_CONTENT}" | sed -nEe 's/^# NAMESPACE=([^ $]*)/\1/p')"
-EXECUTABLE="$(echo "${IMPORT_CONTENT}" | sed -nEe 's/^# EXECUTABLE=([^ $]*)/\1/p')"
-COMMAND="${EXECUTABLE//-/_}"
+NAMESPACE="$(echo "${IMPORT_CONTENT}" | sed -nEe 's/^# NAMESPACE=([^ $]*)$/\1/p')"
+COMMAND="$(echo "${IMPORT_CONTENT}" | sed -nEe 's/^# COMMAND=([^ $]*)$/\1/p')"
+EXECUTABLE="$(echo "${IMPORT_CONTENT}" | sed -nEe 's/^# EXECUTABLE="([^"$]*)"$/\1/p')"
 
 if [[ -z "${NAMESPACE}" ]]; then
-  echo "could not find NAMESPACE in source file"
+  echo "could not find NAMESPACE in source file or it has junk at the end"
+  exit 1
+fi
+
+if [[ -z "${COMMAND}" ]]; then
+  echo "could not find COMMAND in source file or it has junk at the end"
   exit 1
 fi
 
 if [[ -z "${EXECUTABLE}" ]]; then
-  echo "could not find EXECUTABLE in source file"
+  echo "could not find EXECUTABLE in source file or it has junk at the end"
   exit 1
 fi
 
 IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/^# NAMESPACE=${NAMESPACE}\$/# NAMESPACE={{bc_namespace}}/")"
-IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/^# EXECUTABLE=${EXECUTABLE}\$/# EXECUTABLE={{bc_executable}}/")"
+IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/^# COMMAND=${COMMAND}\$/# COMMAND={{bc_command}}/")"
+IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/^# EXECUTABLE=\"${EXECUTABLE}\"\$/# EXECUTABLE=\"{{bc_executable}}\"/")"
+
 IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/command_current=${COMMAND} /command_current={{bc_command}} /")"
 
 IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/_${NAMESPACE}_${COMMAND}_time ${EXECUTABLE}/_{{bc_namespace}}_{{bc_command}}_time {{bc_executable}}/")"
