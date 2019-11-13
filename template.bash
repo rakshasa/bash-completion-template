@@ -66,10 +66,10 @@ _{{bc_namespace}}_{{bc_command}}() {
     local iarg
 
     for (( iarg=0; iarg < ${#arg_funcs[@]}; ++iarg )); do
-      if [[ "${arg_funcs[iarg]}" =~ ^${word}//([^$]*)$ ]]; then
-        arg_func="_{{bc_namespace}}_${BASH_REMATCH[1]}"
-      elif [[ "${arg_funcs[iarg]}" =~ ^${word}/([^$]*)$ ]]; then
-        arg_func="${BASH_REMATCH[1]}"
+      if [[ "${arg_funcs[iarg]}" =~ ^${word}##([^$]*)$ ]]; then
+        arg_func="_{{bc_namespace}}__${BASH_REMATCH[1]//#/ }"
+      elif [[ "${arg_funcs[iarg]}" =~ ^${word}#([^$]*)$ ]]; then
+        arg_func="${BASH_REMATCH[1]//#/ }"
       fi
     done
 
@@ -84,30 +84,37 @@ _{{bc_namespace}}_{{bc_command}}() {
   return 0
 }
 
-_{{bc_namespace}}_{{bc_command}}_time() {
+_{{bc_namespace}}__time() {
   _{{bc_namespace}}_{{bc_command}} "${@}"
   #time _{{bc_namespace}}_{{bc_command}} "${@}"
 }
 
-complete -F _{{bc_namespace}}_{{bc_command}}_time {{bc_executable}}
+complete -F _{{bc_namespace}}__time {{bc_executable}}
 
 # helper functions
 #
-# arg_funcs+=(--arg//skip)
-# arg_funcs+=(--arg/_{{bc_namespace}}_skip)
+# arg_funcs+=(--foo##skip)
+# arg_funcs+=(--bar#_{{bc_namespace}}__skip)
+# arg_funcs+=(--baz##compgen#-o#default)
 
-_{{bc_namespace}}_default_bashdefault() {
-  COMPREPLY=($(compgen -o default -o bashdefault))
+_{{bc_namespace}}__compgen() {
+  COMPREPLY=($(compgen $(printf "-o %s" "${@}")))
   return 1
 }
 
-_{{bc_namespace}}_skip() {
-  commands=() flags=()
-  iword=$(( ${iword} + 1 ))
+_{{bc_namespace}}__compopt() {
+  # compopt is not available in ancient bash versions (OSX)
+  # so only call it if it's available
+  type compopt &>/dev/null && compopt $(printf "-o %s" "${@}")
 }
 
-_{{bc_namespace}}_nospace() {
+_{{bc_namespace}}__nospace() {
   # compopt is not available in ancient bash versions (OSX)
   # so only call it if it's available
   type compopt &>/dev/null && compopt -o nospace
+}
+
+_{{bc_namespace}}__word_skip() {
+  commands=() flags=()
+  iword=$(( ${iword} + 1 ))
 }

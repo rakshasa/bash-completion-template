@@ -48,7 +48,7 @@ IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/^# EXECUTABLE=\"${EXECUTA
 
 IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/command_current=${COMMAND} /command_current={{bc_command}} /")"
 
-IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/_${NAMESPACE}_${COMMAND}_time ${EXECUTABLE}/_{{bc_namespace}}_{{bc_command}}_time {{bc_executable}}/")"
+IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/_${NAMESPACE}__time ${EXECUTABLE}/_{{bc_namespace}}__time {{bc_executable}}/")"
 IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/_${NAMESPACE}_${COMMAND}/_{{bc_namespace}}_{{bc_command}}/")"
 IMPORT_CONTENT="$(echo "${IMPORT_CONTENT}" | sed -e "s/_${NAMESPACE}/_{{bc_namespace}}/")"
 
