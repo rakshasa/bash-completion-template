@@ -62,8 +62,8 @@ _{{bc_namespace}}_{{bc_command}}() {
       return 0
     fi
 
-    local arg_func
-    local iarg
+    local arg_func=
+    local iarg=
 
     for (( iarg=0; iarg < ${#arg_funcs[@]}; ++iarg )); do
       if [[ "${arg_funcs[iarg]}" =~ ^${word}##([^$]*)$ ]]; then
