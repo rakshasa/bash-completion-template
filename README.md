@@ -44,8 +44,9 @@ Helper Functions
 ----------------
 
 ```bash
-arg_funcs+=(--arg//do_skip)
-arg_funcs+=(--arg/_rtorrent_docker_do_skip)
+# arg_funcs+=(--foo##skip)
+# arg_funcs+=(--foo#_bazspace__skip)
+# arg_funcs+=(--foo##compgen#-o#default)
 ```
 
-Both add a handler for the flag `--arg` so it calls `_rtorrent_docker_do_skip`, with `//` using the namespace prefix.
+Adds a handler for the flag `--foo` so it calls `_bazspace__skip`, with `##` adding the namespace prefix and subsequent `#` adding arguments.
