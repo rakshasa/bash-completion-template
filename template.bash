@@ -4,13 +4,47 @@
 # {{bc_command}} # the bash-friendly name appended to the namespace
 # {{bc_executable}} # the filename of the executable binary(s)
 
+# Only get a list of valid completions when we've reached the last
+# word. By incrementing 'iword' we have moved from the command/flag to
+# the next word, the argument to that command/flag.
+#
+# _{{bc_namespace}}__docker_images() {
+#   commands=() flags=()
+#   iword=$(( ${iword} + 1 ))
+#
+#   if (( ${iword} == ${cword} )); then
+#     commands=($(docker images))
+#   fi
+# }
+#
+# If this is the last word, generate the list of valid arguments and
+# append them without space after an '=' sign. By setting COMPREPLY
+# here explicitly and returning '1' we exit the main loop without
+# using the default completion handler.
+#
+# By using '"${words[0]}"' we call {{bc_command}}.
+#
+# _{{bc_namespace}}__docker_args() {
+#   commands=() flags=()
+#   iword=$(( ${iword} + 1 ))
+#
+#   if (( ${iword} == ${cword} )); then
+#     COMPREPLY=($(compgen -W "$("${words[0]}" docker args)" -S= -- "${cur}"))
+#     _{{bc_namespace}}__nospace
+#     return 1 
+#   fi
+# }
+#
 # _{{bc_namespace}}__{{bc_command}}_build_all() {
 #   # by not checking for '-*' one does not need to type '-' to
 #   # complete these flags
-#   flags=(--build-arg --no-cache --help)
-#   flag_funcs[--build-arg]=_{{bc_namespace}}__{{bc_command}}_arg_skip
+#   flags=(--build-arg --no-cache --base-image --help)
+#   flag_funcs=(
+#     --base-image####docker_images#--quiet
+#     --build-arg##docker_args
+#   )
 # }
-
+#
 # _{{bc_namespace}}__{{bc_command}}_build() {
 #   if [[ "${word}" == -* ]]; then
 #     flags=(--help)
@@ -18,7 +52,7 @@
 #     commands=(all)
 #   fi
 # }
-
+#
 # _{{bc_namespace}}__{{bc_command}}() {
 #   if [[ "${word}" == -* ]]; then
 #     flags=(--help)
