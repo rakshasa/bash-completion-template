@@ -83,6 +83,7 @@ _{{bc_namespace}}_{{bc_command}}() {
     local word=${words[iword]} rword=${words[iword]}
     local completion_func=_{{bc_namespace}}__${command_current}
 
+    # Matching commands move the interpreter down a command layer while flags are handled in the same layer.
     commands=() flags=() arg_funcs=()
 
     #echo -e "
@@ -93,25 +94,39 @@ ${command_current} i${iword} c${cword}"
       return 0
     fi
 
+    # Do not allow '#' in commands or flags.
+    if [[ "${word}" =~ '#' ]]; then
+      return 0
+    fi
+
     if (( ${iword} == ${cword} )); then
-      # Use only root commands/flags for completion. (todo: unless matching)
-      commands=(${commands[@]//#[^ ]*/})
-      flags=(${flags[@]//#[^ ]*/})
+      # If non-empty word and no root commands are matched, include all aliased commands.
+      if [[ -z "${word}" ]] || [[ " ${commands[*]} " =~ \ ${word}([^# ]*)(#| ) ]]; then
+        commands=(${commands[@]//#[^ ]*/})
+      else
+        commands=(${commands[@]//#/ })
+      fi
+
+      # If non-empty word and no root flags are matched, include all aliased flags.
+      if [[ -z "${word}" ]] || [[ " ${flags[*]} " =~ \ ${word}([^# ]*)(#| ) ]]; then
+        flags=(${flags[@]//#[^ ]*/})
+      else
+        flags=(${flags[@]//#/ })
+      fi
+
       break
     fi
 
     if [[ " ${commands[*]} " =~ " ${word} " ]]; then
-      # TODO: Allow aliases here too.
+      # TODO: Allow aliases for commands.
       command_current=${command_current}_${word//-/_}
       command_pos=${iword}
     elif [[ " ${flags[*]} " =~ \ ${word}(#| ) ]]; then
-      : # TODO: Use ( ,#) match.
+      : # Always make your : mean :, and your ! mean !.
     elif [[ " ${flags[*]} " =~ \ ([^ ]*)#${word}(#| ) ]] ; then
-      # Match current word or root flag word.
+      # Match current word or root flag.
       rword="${rword}|${BASH_REMATCH[1]%%#*}"
     else
-      echo -e "
-end"
       return 0
     fi
 
