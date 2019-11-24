@@ -3,7 +3,14 @@
 # argument helper functions
 
 _docker_machine__filter() {
-  
+  commands=() flags=()
+  iword=$(( ${iword} + 1 ))
+
+  if (( ${iword} == ${cword} )); then
+    COMPREPLY=($(compgen -W "$("${words[0]}" docker args)" -S= -- "${cur}"))
+    _rtorrent_docker__nospace
+    return 1
+  fi
 }
 
 # completion docker-machine layer

@@ -78,21 +78,40 @@ _{{bc_namespace}}_{{bc_command}}() {
   local command_current={{bc_command}} command_pos=0 iword=0 cskip=0
 
   for (( iword=1; iword <= ${cword}; ++iword)); do
-    local word=${words[iword]}
+    # Word is the current word being completed.
+    # Rword is the regexp pattern used when looking up arg_func.
+    local word=${words[iword]} rword=${words[iword]}
     local completion_func=_{{bc_namespace}}__${command_current}
 
     commands=() flags=() arg_funcs=()
 
+    #echo -e "
+${command_current} i${iword} c${cword}"
+
     if ! declare -F "${completion_func}" > /dev/null || ! ${completion_func}; then
+      # No conversion of '#' is done, the completion_func is responsible for cleaning up commands/flags.
       return 0
     fi
 
     if (( ${iword} == ${cword} )); then
+      # Use only root commands/flags for completion. (todo: unless matching)
+      commands=(${commands[@]//#[^ ]*/})
+      flags=(${flags[@]//#[^ ]*/})
       break
-    elif [[ " ${commands[*]} " =~ " ${word} " ]]; then
+    fi
+
+    if [[ " ${commands[*]} " =~ " ${word} " ]]; then
+      # TODO: Allow aliases here too.
       command_current=${command_current}_${word//-/_}
       command_pos=${iword}
-    elif ! [[ " ${flags[*]} " =~ " ${word} " ]]; then
+    elif [[ " ${flags[*]} " =~ \ ${word}(#| ) ]]; then
+      : # TODO: Use ( ,#) match.
+    elif [[ " ${flags[*]} " =~ \ ([^ ]*)#${word}(#| ) ]] ; then
+      # Match current word or root flag word.
+      rword="${rword}|${BASH_REMATCH[1]%%#*}"
+    else
+      echo -e "
+end"
       return 0
     fi
 
@@ -100,10 +119,10 @@ _{{bc_namespace}}_{{bc_command}}() {
     local iarg=
 
     for (( iarg=0; iarg < ${#arg_funcs[@]}; ++iarg )); do
-      if [[ "${arg_funcs[iarg]}" =~ ^${word}##([^$]*)$ ]]; then
-        arg_func="_{{bc_namespace}}__${BASH_REMATCH[1]//#/ }"
-      elif [[ "${arg_funcs[iarg]}" =~ ^${word}#([^$]*)$ ]]; then
-        arg_func="${BASH_REMATCH[1]//#/ }"
+      if [[ "${arg_funcs[iarg]}" =~ ^(${rword})##([^$]*)$ ]]; then
+        arg_func="_{{bc_namespace}}__${BASH_REMATCH[2]//#/ }"
+      elif [[ "${arg_funcs[iarg]}" =~ ^(${rword})#([^$]*)$ ]]; then
+        arg_func="${BASH_REMATCH[2]//#/ }"
       fi
     done
 
@@ -112,7 +131,7 @@ _{{bc_namespace}}_{{bc_command}}() {
     fi
   done
 
-  local compreply=("${flags[*]}" "${commands[*]}")
+  local compreply=("${commands[*]}" "${flags[*]}")
   COMPREPLY=($(compgen -W "${compreply[*]}" -- "${cur}"))
 
   return 0
