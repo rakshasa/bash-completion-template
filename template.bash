@@ -86,9 +86,6 @@ _{{bc_namespace}}_{{bc_command}}() {
     # Matching commands move the interpreter down a command layer while flags are handled in the same layer.
     commands=() flags=() arg_funcs=()
 
-    #echo -e "
-${command_current} i${iword} c${cword}"
-
     if ! declare -F "${completion_func}" > /dev/null || ! ${completion_func}; then
       # No conversion of '#' is done, the completion_func is responsible for cleaning up commands/flags.
       return 0
